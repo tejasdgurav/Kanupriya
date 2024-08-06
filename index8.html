@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanupriya | Watercolor Artist</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Raleway:wght@200;400&display=swap');
+
+        :root {
+            --paper-color: #f5f0e8;
+            --ink-color: #2c3e50;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Raleway', sans-serif;
+            background: var(--paper-color);
+            color: var(--ink-color);
+            cursor: none;
+        }
+
+        #canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .content {
+            position: relative;
+            z-index: 2;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 5vw;
+            font-weight: 300;
+            margin: 0;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 2s ease, transform 2s ease;
+        }
+
+        p {
+            font-size: 1.2vw;
+            line-height: 1.6;
+            max-width: 60%;
+            margin: 2em auto;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 2s ease 0.5s, transform 2s ease 0.5s;
+        }
+
+        .brush {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            background: radial-gradient(circle, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0) 70%);
+        }
+
+        nav {
+            position: fixed;
+            bottom: 2em;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 2em;
+            opacity: 0;
+            transition: opacity 2s ease 1s;
+        }
+
+        nav a {
+            color: var(--ink-color);
+            text-decoration: none;
+            font-size: 1vw;
+            transition: color 0.3s ease;
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+        }
+
+        nav a:hover {
+            color: #3498db;
+        }
+
+        .palette {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .color {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .color:hover {
+            transform: scale(1.2);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <div class="brush"></div>
+    <div class="content">
+        <h1>Kanupriya</h1>
+        <p>Welcome to my world of watercolors, where pigments dance with water to create fleeting moments of beauty. Each stroke is a journey, each painting a captured emotion. Let the colors flow and tell their stories.</p>
+        <nav>
+            <a href="#gallery">Gallery</a>
+            <a href="#process">Process</a>
+            <a href="#workshops">Workshops</a>
+            <a href="#contact">Connect</a>
+        </nav>
+    </div>
+    <div class="palette">
+        <div class="color" style="background-color: #1e88e5;"></div>
+        <div class="color" style="background-color: #43a047;"></div>
+        <div class="color" style="background-color: #e53935;"></div>
+        <div class="color" style="background-color: #fdd835;"></div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const brush = document.querySelector('.brush');
+        let paint = [];
+        let mouse = { x: 0, y: 0 };
+        let prevMouse = { x: 0, y: 0 };
+        let currentColor = 'rgba(30, 136, 229, 0.2)';
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function createPaintDrop() {
+            return {
+                x: mouse.x,
+                y: mouse.y,
+                size: Math.random() * 20 + 5,
+                color: currentColor,
+                speedX: (mouse.x - prevMouse.x) * 0.5,
+                speedY: (mouse.y - prevMouse.y) * 0.5,
+                life: 200
+            };
+        }
+
+        function drawPaint(drop) {
+            ctx.beginPath();
+            ctx.arc(drop.x, drop.y, drop.size, 0, Math.PI * 2);
+            ctx.fillStyle = drop.color;
+            ctx.fill();
+        }
+
+        function updatePaint() {
+            paint = paint.filter(drop => drop.life > 0);
+            paint.forEach(drop => {
+                drop.x += drop.speedX;
+                drop.y += drop.speedY;
+                drop.speedX *= 0.99;
+                drop.speedY *= 0.99;
+                drop.life--;
+                drop.size *= 1.01;
+                drop.color = drop.color.replace(/[\d.]+\)$/g, `${drop.life / 200})`);
+            });
+        }
+
+        function animate() {
+            ctx.fillStyle = 'rgba(245, 240, 232, 0.01)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            updatePaint();
+            paint.forEach(drawPaint);
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        document.addEventListener('mousemove', (e) => {
+            prevMouse.x = mouse.x;
+            prevMouse.y = mouse.y;
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+
+            brush.style.left = `${mouse.x - 10}px`;
+            brush.style.top = `${mouse.y - 10}px`;
+            brush.style.transform = `scale(${1 + Math.hypot(mouse.x - prevMouse.x, mouse.y - prevMouse.y) * 0.1})`;
+
+            for (let i = 0; i < 3; i++) {
+                paint.push(createPaintDrop());
+            }
+            if (paint.length > 500) paint.splice(0, 3);
+        });
+
+        document.querySelectorAll('.color').forEach(colorEl => {
+            colorEl.addEventListener('click', () => {
+                currentColor = colorEl.style.backgroundColor.replace(')', ', 0.2)').replace('rgb', 'rgba');
+            });
+        });
+
+        // Reveal content
+        window.addEventListener('load', () => {
+            document.querySelector('h1').style.opacity = 1;
+            document.querySelector('h1').style.transform = 'translateY(0)';
+            document.querySelector('p').style.opacity = 1;
+            document.querySelector('p').style.transform = 'translateY(0)';
+            document.querySelector('nav').style.opacity = 1;
+        });
+
+        // Paper texture effect
+        function addTexture() {
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                const noise = Math.random() * 10 - 5;
+                data[i] = Math.max(0, Math.min(255, data[i] + noise));
+                data[i+1] = Math.max(0, Math.min(255, data[i+1] + noise));
+                data[i+2] = Math.max(0, Math.min(255, data[i+2] + noise));
+            }
+            ctx.putImageData(imageData, 0, 0);
+        }
+
+        setInterval(addTexture, 100);
+    </script>
+</body>
+</html>
